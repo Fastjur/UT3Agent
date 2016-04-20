@@ -1,0 +1,20 @@
+use UTbot as knowledge.
+
+module UTbotInit {
+	% Initially, we are going nowhere.
+	if true then insert(navigation(none, none)).
+	if true then insert(deployable([])).
+	forall percept(orientation(Loc, Rot, Vel)) do insert(orientation(Loc, Rot, Vel)).
+	forall percept(status(HP, AP, Adr, Combo)) do insert(status(HP, AP, Adr, Combo)).
+	forall percept(currentWeapon(Type, Mode)) do insert(currentWeapon(Type, Mode)).
+
+	% Initialize self
+	forall percept(self(UnrealID, NickName, Team)) do insert(self(UnrealID, NickName, Team)).
+
+	% Store all navpoints in the map.
+	forall percept(navPoint(UnrealID,_,_)) do insert(navPoint(UnrealID)).
+	
+	% Store all weapon pickups in the map.
+	forall percept(pickup(UnrealID, Label, ItemType)) do insert(pickup(UnrealID, Label, ItemType)).
+	
+}
