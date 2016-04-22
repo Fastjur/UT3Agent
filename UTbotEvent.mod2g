@@ -7,9 +7,6 @@ module UTbotEvent {
 	% Update the navigation state of the bot ('send on change' percept).
 	forall bel(navigation(OldStatus,OldDest)), percept(navigation(Status,Destination))
 		do delete(navigation(OldStatus,OldDest)) + insert(navigation(Status,Destination)).
-		
-	% Fix spinning???
-	if goal(at(X)), percept(at(X)) then drop(at(X)).
 
 	% Update orientation
 	forall bel(orientation(OldLoc, OldRot, OldVel)), percept(orientation(Loc, Rot, Vel))
@@ -18,10 +15,17 @@ module UTbotEvent {
 	% Update status
 	forall bel(status(OldHP, OldAP, OldAdr, OldCombo)), percept(status(Health, Armour, Adrenaline, Combo))
 		do delete(status(OldHP, OldAP, OldAdr, OldCombo)) + insert(status(Health, Armour, Adrenaline, Combo)).
+	
+	forall bel(shoot(Old)), percept(shoot(New))
+		do delete(shoot(Old)) + insert(shoot(New)).
 		
 	% Update current weapons and deployables
 	forall bel(currentWeapon(OldType, OldFireMode)), percept(currentWeapon(Type, FireMode))
 		do delete(currentWeapon(OldType, OldFireMode)) + insert(currentWeapon(Type, FireMode)).
+		
+	% Update inventory
+	forall percept(weapon(Type, Ammo, AltAmmo)) do insert(weapon(Type, Ammo, AltAmmo)).
+	forall percept(not(weapon(Type, Ammo, AltAmmo))) do delete(weapon(Type, Ammo, AltAmmo)).
 	
 	% Update deployable
 	if percept(deployable(Weapon)), bel(deployable(Old)) then delete(deployable(Old)) + insert(deployable(Weapon)).
@@ -32,16 +36,22 @@ module UTbotEvent {
 
 	% Define priority for health when below 100 (Defined in UTbot.pl). These are always added, so there is no requirement to see the healthpacks.
 	if goal(at(OldID)), bel(needHealth, not(isHealthPack(OldID)), isHealthPack(ID)) then drop(at(OldID)) + adopt(at(ID)).
+	if bel(needHealth, isHealthPack(ID)) then adopt(at(ID)).
 	
 	% Goto armor when we see one and we aren't travelling to health packs, we only do this when we see the item, contrary to the health packs which are always added
-	% CHECK THIS ONE
-	if goal(at(OldID)), bel(needArmor, not(needHealth), item(ID, Label, _, _), isArmorPack(ID)) then drop(at(OldID)) + adopt(at(ID)).
+	if bel(needArmor, not(needHealth), not(isShooting), item(ID, Label, _, _), isArmorPack(ID)) then adopt(at(ID)).
 	
-	% Use deployable when we have one
-	if bel(deployable(X), currentWeapon(W,_), member(W,X)) then adopt(deploy).
+	% Goto weapon pickup if we see one and aren't attempting to pick up health, same as the armor
+	if bel(item(ID, 'weapon', Label, _), needThisWeapon(Label), not(needHealth)) then adopt(at(ID)).
 	
 	% If we have no goal yet, pick a random navPoint as our goal.
 	% Note that it may be unreachable; this example does not handle that.
-	if not(goal(at(_))), bel(navPoint(Target)) then adopt(at(Target)).
-	if bel(navigation(stuck, Destination), navPoint(Target), Target \= Destination) then drop(at(Destination)) + adopt(at(Target)).
+	if not(goal(at(_))), bel(navPoint(Target), pickup(Target, 'deployable', _), item(Target, _, _, _), not(unreachable(Target)), not(item(Target, _, 'slow_volume', _))) then adopt(at(Target)).
+	if not(goal(at(_))), bel(navPoint(Target), pickup(Target, 'other', _), item(Target, _, _, _), not(unreachable(Target)), not(item(Target, _, 'slow_volume', _))) then adopt(at(Target)).
+	if not(goal(at(_))), bel(navPoint(Target), not(unreachable(Target))) then adopt(at(Target)).
+	if bel(navigation(stuck, Destination), navPoint(Target)) then drop(at(Destination)) + adopt(at(Target)).
+	if bel(navigation(noPath, Dest), navPoint(Target), (Dest \= Target)) then drop(at(Dest)) + adopt(at(Target)) + insert(unreachable(Dest)).
+	
+	% Use deployable when we have one
+	if bel(deployable(X), currentWeapon(W,_), member(W,X)) then adopt(deploy).
 }

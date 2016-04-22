@@ -6,4 +6,4 @@ module UTbotMain {
 	if goal(at(Destination)) then navigate(Destination).
 	if goal(respawn) then respawn + drop(respawn).
 	if goal(deploy) then deploy + drop(deploy).
-}
+} 
