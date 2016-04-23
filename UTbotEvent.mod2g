@@ -1,6 +1,7 @@
 use UTbot as knowledge.
+
 % We need randomall here to pick a random navPoint as target.
-order=randomall.
+order=linearall.
 
 module UTbotEvent {
 	
@@ -27,27 +28,32 @@ module UTbotEvent {
 	forall percept(weapon(Type, Ammo, AltAmmo)) do insert(weapon(Type, Ammo, AltAmmo)).
 	forall percept(not(weapon(Type, Ammo, AltAmmo))) do delete(weapon(Type, Ammo, AltAmmo)).
 	
+	forall bel(powerup(OldType, OldDur)), percept(powerup(Type, Duration))
+		do delete(powerup(OldType, OldDur)) + insert(powerup(Type, Duration)).
+	
 	% Update deployable
-	if percept(deployable(Weapon)), bel(deployable(Old)) then delete(deployable(Old)) + insert(deployable(Weapon)).
+	forall bel(deployable(Old)), percept(deployable(Weapon))
+		do delete(deployable(Old)) + insert(deployable(Weapon)).
 		
 	% Update visible items
 	forall percept(item(ID, Label, Type, Pos)) do insert(item(ID, Label, Type, Pos)).
 	forall percept(not(item(ID, Label, Type, Pos))) do delete(item(ID, Label, Type, Pos)).
 
 	% Define priority for health when below 100 (Defined in UTbot.pl). These are always added, so there is no requirement to see the healthpacks.
-	if goal(at(OldID)), bel(needHealth, not(isHealthPack(OldID)), isHealthPack(ID)) then drop(at(OldID)) + adopt(at(ID)).
-	if bel(needHealth, isHealthPack(ID)) then adopt(at(ID)).
+	if bel(needHealth) then adopt(pickUpHp).
+	
+	if bel(isShooting) then insert(isShooting).
 	
 	% Goto armor when we see one and we aren't travelling to health packs, we only do this when we see the item, contrary to the health packs which are always added
 	if bel(needArmor, not(needHealth), not(isShooting), item(ID, Label, _, _), isArmorPack(ID)) then adopt(at(ID)).
 	
 	% Goto weapon pickup if we see one and aren't attempting to pick up health, same as the armor
-	if bel(item(ID, 'weapon', Label, _), needThisWeapon(Label), not(needHealth)) then adopt(at(ID)).
+	if bel(item(ID, weapon, Label, _), needThisWeapon(Label), not(needHealth)) then adopt(at(ID)).
 	
 	% If we have no goal yet, pick a random navPoint as our goal.
 	% Note that it may be unreachable; this example does not handle that.
-	if not(goal(at(_))), bel(navPoint(Target), pickup(Target, 'deployable', _), item(Target, _, _, _), not(unreachable(Target)), not(item(Target, _, 'slow_volume', _))) then adopt(at(Target)).
-	if not(goal(at(_))), bel(navPoint(Target), pickup(Target, 'other', _), item(Target, _, _, _), not(unreachable(Target)), not(item(Target, _, 'slow_volume', _))) then adopt(at(Target)).
+	if not(goal(at(_))), bel(navPoint(Target), pickup(Target, 'deployable', _), item(Target, _, _, _), not(unreachable(Target)), not(slowVolume(Target))) then adopt(at(Target)).
+	if not(goal(at(_))), bel(navPoint(Target), pickup(Target, 'other', _), item(Target, _, _, _), not(unreachable(Target)), not(slowVolume(Target))) then adopt(at(Target)).
 	if not(goal(at(_))), bel(navPoint(Target), not(unreachable(Target))) then adopt(at(Target)).
 	if bel(navigation(stuck, Destination), navPoint(Target)) then drop(at(Destination)) + adopt(at(Target)).
 	if bel(navigation(noPath, Dest), navPoint(Target), (Dest \= Target)) then drop(at(Dest)) + adopt(at(Target)) + insert(unreachable(Dest)).

@@ -9,7 +9,7 @@ use "ut-environment.jar" as environment with
 	bots = [
 			[
 			 	["name", "FASTJUR_BOT"],
-				["skill", 7],
+				["skill", 5],
 				["skin", "BotA"],
 				["logLevel", "WARNING"]
 			]

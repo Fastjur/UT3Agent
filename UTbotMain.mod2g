@@ -1,9 +1,13 @@
 use UTbot as knowledge.
 use UTbot as actionspec.
+use UTbotHealth as module.
+
+order=linearall.
 
 module UTbotMain {
 	% Try to go to our destination if we want to be there.
 	if goal(at(Destination)) then navigate(Destination).
+	if goal(pickUpHp) then UTbotHealth.
 	if goal(respawn) then respawn + drop(respawn).
 	if goal(deploy) then deploy + drop(deploy).
 } 

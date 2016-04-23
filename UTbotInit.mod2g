@@ -7,7 +7,8 @@ module UTbotInit {
 	forall percept(orientation(Loc, Rot, Vel)) do insert(orientation(Loc, Rot, Vel)).
 	forall percept(status(HP, AP, Adr, Combo)) do insert(status(HP, AP, Adr, Combo)).
 	forall percept(currentWeapon(Type, Mode)) do insert(currentWeapon(Type, Mode)).
-	forall percept(shoot(Shooting)) do insert(shoot(Shooting)).
+	forall percept(slowVolume(ID)) do insert(slowVolume(id)).
+	forall percept(powerup(Type, Duration)) do insert(powerup(Type, Duration)).
 
 	% Initialize self
 	forall percept(self(UnrealID, NickName, Team)) do insert(self(UnrealID, NickName, Team)).

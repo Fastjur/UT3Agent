@@ -1,0 +1,17 @@
+use UTbot as knowledge.
+use UTbot as actionspec.
+
+% We need randomall here to pick a random navPoint as target.
+order=linearall.
+exit=nogoals.
+
+module UTbotHealth {
+	forall self.goal(at(X)), not(bel(isHealthPack(X))) do drop(at(X)).
+	
+	if not(bel(needHealth)) then self.drop(pickUpHp) + delete(needHealth).
+	if not(bel(needHealth)), goal(at(X)) then drop(at(X)).
+	
+	if self.goal(pickUpHp), bel(item(ID,health,_,_)) then adopt(at(ID)).
+	if self.goal(pickUpHp), not(goal(at(ID))), bel(navPoint(ID), isHealthPack(ID)) then adopt(at(ID)).
+	if goal(at(ID)) then navigate(ID).
+}
