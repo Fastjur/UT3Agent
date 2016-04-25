@@ -1,10 +1,12 @@
 use "ut-environment.jar" as environment with
-	%visualizer = "rmi://127.0.0.1:1099",
-	%botServer = "ut://127.0.0.1:3000",
-	%controlServer = "ut://127.0.0.1:3001",
-	visualizer = "rmi://jt.liquidpineapple.net:1099",
-	botServer = "ut://jt.liquidpineapple.net:3000",
-	controlServer = "ut://jt.liquidpineapple.net:3001",
+	visualizer = "rmi://127.0.0.1:1099",
+	botServer = "ut://127.0.0.1:3000",
+	controlServer = "ut://127.0.0.1:3001",
+	
+	%This is a testing server we used with a couple of people
+	%visualizer = "rmi://jt.liquidpineapple.net:1099",
+	%botServer = "ut://jt.liquidpineapple.net:3000",
+	%controlServer = "ut://jt.liquidpineapple.net:3001",
 	logLevel = "WARNING", 
 	bots = [
 			[

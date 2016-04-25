@@ -1,0 +1,20 @@
+use UTbot as knowledge.
+use UTbot as actionspec.
+
+order=linearall.
+exit=never.
+
+module UTbotShootEnemy {
+	
+	% If we cannot see an enemy, exit this module.
+	if not(bel(seeEnemy)) then self.drop(shootEnemy) + exit-module.
+	
+	% If we have goals to be somewhere, which is not an enemy, then drop these goals.
+	forall self.goal(shootEnemy), goal(at(ID)), bel(not(bot(ID,_,_,_,_,_))) do drop(at(ID)).
+	
+	% If we see an enemy, adopt to be at that enemies position, this ensure the bot won't turn his back on enemies while being shot at
+	if self.goal(shootEnemy), bel(bot(_,_,_,Pos,_,_)) then adopt(at(Pos)).
+	
+	% Finally, if there is a goal to be at an enemy, then we should go to there.
+	if goal(at(Pos)) then navigate(Pos).
+}

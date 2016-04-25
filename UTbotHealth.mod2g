@@ -1,17 +1,31 @@
 use UTbot as knowledge.
 use UTbot as actionspec.
 
-% We need randomall here to pick a random navPoint as target.
 order=linearall.
-exit=nogoals.
+exit=nogoals. % Stop if we have no need to go to a healthpack anymore.
 
 module UTbotHealth {
-	forall self.goal(at(X)), not(bel(isHealthPack(X))) do drop(at(X)).
 	
-	if not(bel(needHealth)) then self.drop(pickUpHp) + delete(needHealth).
-	if not(bel(needHealth)), goal(at(X)) then drop(at(X)).
+	% If we can see an enemy, then immediately exit this module.
+	if bel(seeEnemy) then self.drop(pickUpHp) + stop + exit-module.
 	
-	if self.goal(pickUpHp), bel(item(ID,health,_,_)) then adopt(at(ID)).
-	if self.goal(pickUpHp), not(goal(at(ID))), bel(navPoint(ID), isHealthPack(ID)) then adopt(at(ID)).
+	% If we don't need health anymore, drop the appropriate goal and exit this module
+	if not(bel(needHealth)) then self.drop(pickUpHp) + exit-module.
+	
+	% If there are goals to be somewhere, which is not a health pack, drop these goals
+	forall self.goal(pickUpHp), goal(at(IDWrong)), bel(not(isHealthPack(IDWrong))) do drop(at(IDWrong)) + stop.
+	
+	% If we can see health packs, adopt to be at those healthpacks, this ensures we first attempt to picup close healthpacks
+	forall self.goal(pickUpHp), bel(item(_,_,_,Pos), isHealthPack(Pos)) do adopt(at(Pos)).
+	
+	% If we have goals to be at healthpacks, but we can currently see another one (which is not in our goals yet), then drop the other ones
+	% and go to the one we can see instead. This happens a lot when travelling to a healthpack, and randomly getting close to another one.
+	% This gets rid of inefficient picking up of health packs.
+	forall self.goal(pickUpHp), goal(at(Other)), bel(item(_,_,_,Pos), isHealthPack(Pos), Pos \= Other) do drop(at(Other)) + stop.
+	
+	% If we have no goals yet to be at a healthpack, adopt to be at a random healthpack which is not unreachable.
+	if self.goal(pickUpHp), not(goal(at(Other))), bel(isHealthPack(Other), pickup(Pos,_,_), isHealthPack(Pos), not(unreachable(Pos))) then adopt(at(Pos)).
+	
+	% Finally, if there is a goal to be at a healthpack, then we should go to there.
 	if goal(at(ID)) then navigate(ID).
 }

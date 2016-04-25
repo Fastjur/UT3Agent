@@ -1,0 +1,23 @@
+use UTbot as knowledge.
+use UTbot as actionspec.
+
+order=linearall.
+exit=nogoals.
+
+module UTbotArmor {
+	
+	% If we can see an enemy or need health, exit this module immediately, as it is lower priority.
+	if bel(seeEnemy; needHealth) then self.drop(pickUpArmor) + stop + exit-module.
+	
+	% If we cannot see armor or need it, exit this module.
+	if not(bel(needArmor, seeArmor)) then self.drop(pickUpArmor) + exit-module.
+	
+	% If we have goals to be somewhere, which are not armor pickups then drop these goals.
+	forall self.goal(pickUpArmor), goal(at(IDWrong)), bel(not(isArmorPack(IDWrong))) do drop(at(IDWrong)) + stop.
+	
+	% If we can see an armor pickup, adopt to be at that armor pickup.
+	forall self.goal(pickUpArmor), bel(item(_,_,_,Pos), isArmorPack(Pos)) do adopt(at(Pos)).
+	
+	% Finally, if there is a goal to be at an armor pickup, then we should go to there.
+	if goal(at(ID)) then navigate(ID).
+}

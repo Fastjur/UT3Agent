@@ -1,0 +1,39 @@
+use UTbot as knowledge.
+use UTbot as actionspec.
+
+order=randomall. % The order is randomall, this way the bot will pick a random location to be at.
+exit=nogoals.
+
+module UTbotNavigateRandom {
+	
+	% If we can see an enemy, need health, see a weapon or see armor exit this module immediately, as it is lower priority.
+	if bel(needHealth ; seeWeapon ; seeArmor ; seeEnemy) then self.drop(navigateRandom) + stop + exit-module.
+	
+	% Navigating to random item
+	% If there is an item we can see, adopt to be at this item
+	% Only do this when there isn't already a goal to be somewhere
+	if not(goal(at(_))), bel(item(_,_,_,Pos), not(unreachable(Pos)), not(slowVolume(Pos)), not(needHealth)) then adopt(at(Pos)) + print("Navigating to random visible item!").
+	
+	% Navigating to random deployable
+	% If there is a deployable we can see, adopt to be at this deployable
+	% Only do this when there isn't already a goal to be somewhere
+	if not(goal(at(_))), bel(navPoint(Target,_,_), pickup(Target,deployable,_), not(unreachable(Target)), not(slowVolume(Target)), not(needHealth)) then adopt(at(Target)) + print("Navigating to random deployable!").
+	
+	% Navigating to random powerup
+	% If there is a powerup (Label == other) we can see, adopt to be at this powerup
+	% Only do this when there isn't already a goal to be somewhere
+	if not(goal(at(_))), bel(navPoint(Target,_,_), pickup(Target,other,_), not(unreachable(Target)), not(slowVolume(Target)), not(needHealth)) then adopt(at(Target)) + print("Navigating to random powerup!").
+	
+	% Navigating to random ammo
+	% If there is an ammo pickup we can see, adopt to be at this ammo pickup
+	% Only do this when there isn't already a goal to be somewhere
+	if not(goal(at(_))), bel(navPoint(Target,_,_), pickup(Target,ammo,_), not(unreachable(Target)), not(slowVolume(Target)), not(needHealth)) then adopt(at(Target)) + print("Navigating to random ammo!").
+	
+	% Navigating to random armor
+	% If there is an armor pickup we can see, adopt to be at this armor pickup
+	% Only do this when there isn't already a goal to be somewhere
+	if not(goal(at(_))), bel(navPoint(Target,_,_), pickup(Target,armor,_), not(unreachable(Target)), not(slowVolume(Target)), not(needHealth)) then adopt(at(Target)) + print("Navigating to random armor piece!").
+	
+	% Finally, if there is a goal to be at a random location, then we should go to there.
+	if goal(at(ID)) then navigate(ID).
+}

@@ -1,13 +1,26 @@
 use UTbot as knowledge.
 use UTbot as actionspec.
-use UTbotHealth as module.
+use UTbotShootEnemy as module. % Module for following an enemy to shoot it
+use UTbotHealth as module. % Module for picking up health
+use UTbotArmor as module. % Module for picking up armor
+use UTbotWeapon as module. % Module for picking up a weapon
+use UTbotNavigateRandom as module. % Module for navigating to random locations
 
-order=linearall.
+% This is linearall, this way we can specify the priorities of different actions and modules
+order=linear.
 
 module UTbotMain {
 	% Try to go to our destination if we want to be there.
 	if goal(at(Destination)) then navigate(Destination).
+	
+	% Enter appropriate modules based on some goal.
+	if goal(shootEnemy) then UTbotShootEnemy.
 	if goal(pickUpHp) then UTbotHealth.
+	if goal(pickUpArmor) then UTbotArmor.
+	if goal(pickUpWeapon) then UTbotWeapon.
+	if goal(navigateRandom) then UTbotNavigateRandom.
+	
+	% If we have a respawn goal then perform this action and drop said goal, same goes for deploy
 	if goal(respawn) then respawn + drop(respawn).
 	if goal(deploy) then deploy + drop(deploy).
 } 

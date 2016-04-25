@@ -5,10 +5,17 @@ define navigate(Destination) with
 	pre{ not(navigation(navigating,_)) }
 	post{ true }
 	
+% Calls the respawn action on the bot
 define respawn with
 	pre{ true }
 	post{ true }
 	
+% Deploys the deployable we have currently equipped
 define deploy with
+	pre{ true }
+	post{ true }
+	
+% Stops the navigation and clears the destination
+define stop with
 	pre{ true }
 	post{ true }

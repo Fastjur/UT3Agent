@@ -1,6 +1,5 @@
 use UTbot as knowledge.
 
-% We need randomall here to pick a random navPoint as target.
 order=linearall.
 
 module UTbotEvent {
@@ -16,9 +15,6 @@ module UTbotEvent {
 	% Update status
 	forall bel(status(OldHP, OldAP, OldAdr, OldCombo)), percept(status(Health, Armour, Adrenaline, Combo))
 		do delete(status(OldHP, OldAP, OldAdr, OldCombo)) + insert(status(Health, Armour, Adrenaline, Combo)).
-	
-	forall bel(shoot(Old)), percept(shoot(New))
-		do delete(shoot(Old)) + insert(shoot(New)).
 		
 	% Update current weapons and deployables
 	forall bel(currentWeapon(OldType, OldFireMode)), percept(currentWeapon(Type, FireMode))
@@ -38,25 +34,42 @@ module UTbotEvent {
 	% Update visible items
 	forall percept(item(ID, Label, Type, Pos)) do insert(item(ID, Label, Type, Pos)).
 	forall percept(not(item(ID, Label, Type, Pos))) do delete(item(ID, Label, Type, Pos)).
+	
+	% Update visible bots (all enemies in DM mode)
+	forall percept(bot(ID,Name,Team,Pos,Weapon,FireMode)) do insert(bot(ID,Name,Team,Pos,Weapon,FireMode)).
+	forall percept(not(bot(ID,Name,Team,Pos,Weapon,FireMode))) do delete(bot(ID,Name,Team,Pos,Weapon,FireMode)).
+	
+	% If we can see an enemy, adopt the goal to shoot/follow him
+	% Handled in UTbotShootEnemy.mod2g
+	if bel(seeEnemy) then adopt(shootEnemy).
 
-	% Define priority for health when below 100 (Defined in UTbot.pl). These are always added, so there is no requirement to see the healthpacks.
-	if bel(needHealth) then adopt(pickUpHp).
+	% Define priority for health when below 80 (Defined in UTbot.pl). Because health is important, there is no need to actualy 'see' a health pack,
+	% instead, in the module itself it will handle navigation if no health packs are visible.
+	% Handled in UTbotHealth.mod2g
+	if bel(needHealth, not(shootEnemy)) then adopt(pickUpHp).
 	
-	if bel(isShooting) then insert(isShooting).
+	% Adopt to pick up some armor when we see one and we aren't travelling to health packs,
+	% we only do this when we see the item, contrary to the health packs.
+	% Handled in UTbotArmor.mod2g
+	if bel(needArmor, not(needHealth), seeArmor, not(shootEnemy)) then adopt(pickUpArmor).
 	
-	% Goto armor when we see one and we aren't travelling to health packs, we only do this when we see the item, contrary to the health packs which are always added
-	if bel(needArmor, not(needHealth), not(isShooting), item(ID, Label, _, _), isArmorPack(ID)) then adopt(at(ID)).
+	% Adopt to pick up a weapon when we see one and we aren't travelling to health packs,
+	% we only do this when we see the item, contrary to the health packs.
+	% Handled in UTbotWeapon.mod2g
+	if bel(seeWeapon, not(needHealth), not(shootEnemy)) then adopt(pickUpWeapon).
 	
-	% Goto weapon pickup if we see one and aren't attempting to pick up health, same as the armor
-	if bel(item(ID, weapon, Label, _), needThisWeapon(Label), not(needHealth)) then adopt(at(ID)).
-	
-	% If we have no goal yet, pick a random navPoint as our goal.
+	% If we have no goal yet, pick a random navPoint as our goal
 	% Note that it may be unreachable; this example does not handle that.
-	if not(goal(at(_))), bel(navPoint(Target), pickup(Target, 'deployable', _), item(Target, _, _, _), not(unreachable(Target)), not(slowVolume(Target))) then adopt(at(Target)).
-	if not(goal(at(_))), bel(navPoint(Target), pickup(Target, 'other', _), item(Target, _, _, _), not(unreachable(Target)), not(slowVolume(Target))) then adopt(at(Target)).
-	if not(goal(at(_))), bel(navPoint(Target), not(unreachable(Target))) then adopt(at(Target)).
-	if bel(navigation(stuck, Destination), navPoint(Target)) then drop(at(Destination)) + adopt(at(Target)).
-	if bel(navigation(noPath, Dest), navPoint(Target), (Dest \= Target)) then drop(at(Dest)) + adopt(at(Target)) + insert(unreachable(Dest)).
+	% Handled in UTbotNavigateRandom.mod2g
+	if not(goal(pickUpHp)), not(goal(pickUpArmor)), not(goal(pickUpWeapon)), not(goal(shootEnemy)) then adopt(navigateRandom).
+	
+	% If our navigation belief says we're stuck, then drop the current Destination and adopt another navPoint to be at
+	% which is not the current one. This way the bot free's itself
+	if bel(navigation(stuck, Destination), navPoint(Target,_,_)) then drop(at(Destination)) + adopt(at(Target)).
+	
+	% If our navigation belief says we're attempting to go somewhere which is not reachable, then drop the current Destination and
+	% adopt another navPoint to be at which is not the current one. Also insert that this location is unreachable.
+	if bel(navigation(noPath, Dest), navPoint(Target,_,_), (Dest \= Target)) then drop(at(Dest)) + adopt(at(Target)) + insert(unreachable(Dest)).
 	
 	% Use deployable when we have one
 	if bel(deployable(X), currentWeapon(W,_), member(W,X)) then adopt(deploy).

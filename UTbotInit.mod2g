@@ -1,20 +1,20 @@
 use UTbot as knowledge.
 
 module UTbotInit {
-	% Initially, we are going nowhere.
+	% Initialize these in the belief database, they are updated once percieved in the Event module.
 	if true then insert(navigation(none, none)).
-	if true then insert(deployable([])).
-	forall percept(orientation(Loc, Rot, Vel)) do insert(orientation(Loc, Rot, Vel)).
-	forall percept(status(HP, AP, Adr, Combo)) do insert(status(HP, AP, Adr, Combo)).
-	forall percept(currentWeapon(Type, Mode)) do insert(currentWeapon(Type, Mode)).
-	forall percept(slowVolume(ID)) do insert(slowVolume(id)).
-	forall percept(powerup(Type, Duration)) do insert(powerup(Type, Duration)).
+	if true then insert(deployable(none)).
+	if true then insert(orientation(none, none, none)).
+	if true then insert(status(none, none, none, none)).
+	if true then insert(currentWeapon(none, none)).
+	if true then insert(slowVolume(none)).
+	if true then insert(powerup(none, none)).
 
 	% Initialize self
 	forall percept(self(UnrealID, NickName, Team)) do insert(self(UnrealID, NickName, Team)).
 
 	% Store all navpoints in the map.
-	forall percept(navPoint(UnrealID,_,_)) do insert(navPoint(UnrealID)).
+	forall percept(navPoint(UnrealID,location(X,Y,Z),Neighbours)) do insert(navPoint(UnrealID,location(X,Y,Z),Neighbours)).
 	
 	% Store all weapon pickups in the map.
 	forall percept(pickup(UnrealID, Label, ItemType)) do insert(pickup(UnrealID, Label, ItemType)).
