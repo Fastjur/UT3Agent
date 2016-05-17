@@ -19,3 +19,8 @@ define deploy with
 define stop with
 	pre{ true }
 	post{ true }
+	
+% This action is used to define what/where to shoot.
+define shoot(ID) with
+	pre{ true }
+	post{ true }

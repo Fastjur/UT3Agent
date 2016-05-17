@@ -10,8 +10,14 @@ use "ut-environment.jar" as environment with
 	logLevel = "WARNING", 
 	bots = [
 			[
-			 	["name", "FASTJUR_BOT"],
-				["skill", 5],
+			 	["name", "Fastjur"],
+				["skill", 7],
+				["skin", "BotA"],
+				["logLevel", "WARNING"]
+			],
+			[
+			 	["name", "Fastjur 2"],
+				["skill", 7],
 				["skin", "BotA"],
 				["logLevel", "WARNING"]
 			]

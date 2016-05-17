@@ -4,6 +4,9 @@ order=linearall.
 
 module UTbotEvent {
 	
+	% This is kinda unnecesarry in my code as my goals are dropped and adopted dynamically
+	if percept(fragged(_, _, Victim, _)), bel(self(ID,_,_), Victim = ID), goal(at(X)) then drop(at(X)).
+	
 	% Update the navigation state of the bot ('send on change' percept).
 	forall bel(navigation(OldStatus,OldDest)), percept(navigation(Status,Destination))
 		do delete(navigation(OldStatus,OldDest)) + insert(navigation(Status,Destination)).
@@ -51,17 +54,25 @@ module UTbotEvent {
 	% Adopt to pick up some armor when we see one and we aren't travelling to health packs,
 	% we only do this when we see the item, contrary to the health packs.
 	% Handled in UTbotArmor.mod2g
-	if bel(needArmor, not(needHealth), seeArmor, not(shootEnemy)) then adopt(pickUpArmor).
+	if bel(needArmor, not(needHealth), seeArmor, not(shootEnemy))
+		then adopt(pickUpArmor).
 	
 	% Adopt to pick up a weapon when we see one and we aren't travelling to health packs,
 	% we only do this when we see the item, contrary to the health packs.
 	% Handled in UTbotWeapon.mod2g
-	if bel(seeWeapon, not(needHealth), not(shootEnemy)) then adopt(pickUpWeapon).
+	if   bel(seeWeapon, not(needHealth), not(shootEnemy))
+	then adopt(pickUpWeapon).
 	
 	% If we have no goal yet, pick a random navPoint as our goal
 	% Note that it may be unreachable; this example does not handle that.
 	% Handled in UTbotNavigateRandom.mod2g
-	if not(goal(pickUpHp)), not(goal(pickUpArmor)), not(goal(pickUpWeapon)), not(goal(shootEnemy)) then adopt(navigateRandom).
+	if
+		not(goal(pickUpHp)),
+		not(goal(pickUpArmor)),
+		not(goal(pickUpWeapon)),
+		not(goal(shootEnemy))
+	then
+		adopt(navigateRandom).
 	
 	% If our navigation belief says we're stuck, then drop the current Destination and adopt another navPoint to be at
 	% which is not the current one. This way the bot free's itself
